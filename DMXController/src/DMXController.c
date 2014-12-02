@@ -46,7 +46,7 @@ int main( int argc, char *argv[] )
 	
 	/* do stuff */
 	for (;;) {
-		mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
+		//mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
 	}
 
 
