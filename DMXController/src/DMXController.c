@@ -33,10 +33,10 @@ static void     exitDMX       ();
 int main( int argc, char *argv[] )
 {
 	// initialize mg
-	struct mg_server *server = mg_create_server(NULL, NULL);
+	/*struct mg_server *server = mg_create_server(NULL, NULL);
 	mg_set_option(server, "document_root", ".");      // Serve current directory
 	mg_set_option(server, "listening_port", "8080");  // Open port 8080
-
+	*/
 
 	// initialize DMX
 	int error;
@@ -51,8 +51,8 @@ int main( int argc, char *argv[] )
 
 
 	// kill mg
-	mg_destroy_server(&server);
-
+	/*mg_destroy_server(&server);
+	*/
 	// kill DMX
 	exitDMX();
 	
