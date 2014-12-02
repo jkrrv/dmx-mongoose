@@ -8,7 +8,7 @@
 
 #include <gtk/gtk.h>                        // GTK+3.0 graphics library
 #include <dmx.h>                            // DMX interface library
-#include <mongoose.h>						// Mongoose Web server
+#include "mongoose.h"						// Mongoose Web server
 
 
 // constants and definitions
