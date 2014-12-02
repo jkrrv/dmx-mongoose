@@ -1,0 +1,109 @@
+// ==========================================================================
+// DMXWheel - a simple DMX lighting control GUI for the raspberry pi
+// ==========================================================================
+//
+// Created:   09/28/212
+// Author:    Mike Engeldinger ( mike@engeldinger.com )
+// License:   Creative Commons CC-BY-NC-SA and GPL as apliccable
+//
+// ==========================================================================
+//
+// Description:
+//
+// This code contains an application that allows you to control a DMX light
+// fixture ( such as an LED color wash spotlight ) via a color wheel GUI on
+// the raspberry pi. When the program is launched, a window will appear on
+// your display ( typically within LXDE ) that contains the standard HSV
+// color wheel, where you can set the hue, saturation, and value using the
+// mouse. The HSV values are converted to red, green, and blue, and
+// transmitted to the light fixture using a USB to DMX controller.
+//
+// ==========================================================================
+//
+// Hardware:
+//
+// The connection between the raspbery pi and the light fixture is done 
+// through a Velleman K8062 | VM116 USB Cnotrolled DMX Interface. This interface
+// is commonly available in both kit and assembled form from Velleman at:
+//
+//     http://www.vellemanusa.com/products/view/?id=522038
+//
+// The light can be any DMX controlled fixture that has separate red, green,
+// and blue channels. The code is currently configured to support a light
+// that uses DMX channels 1-3 respectively, but can be changed depending on
+// the fixture you use. The fixture used for testing was the Chauvet LEDsplash 
+// 200B:
+//
+//     http://www.chauvetlighting.com/ledsplash-200b
+//
+// To connect the hardware, you will need a USB connection from the raspberry
+// pi to the DMX controller via USB flat to square cable, and a DMX connection
+// from the controller to the fixture via an XLR cable. Since the raspberry pi
+// has only two USB connections, you might want to use a powered hub to allow
+// for the use of the mouse, keyboard, and DMX controller simultaneously.
+//
+//
+// ==========================================================================
+//
+// Software:
+//
+// The software consists of a DMX library that controls the interface (libdmx),
+// a deamon program that runs in the background to service the interface (dmxd),
+// and an executable program that you launch in the window manager any time
+// (DMXWindow.bin).
+//
+// ==========================================================================
+//
+// Prerequisites:
+//
+// Two packages are required to build the code on the raspberry pi:
+//
+//   USB development support                            (libusb-dev)
+//   GTK grahpical user interface development support   (gtk+3.0)
+//
+// Both packages are easily installed, but are only required if you want
+// to build the source code; you can run the pre-built binaries directly
+// if you wish.
+//
+// ==========================================================================
+//
+// Installation:
+//
+// You can use the apt-get utility to install the requisite packages by
+// typing these two commands from a terminal window:
+//
+//   sudo apt-get install libusb-dev
+//   sudo apt-get install gtk+3.0
+//
+//
+//
+// To build the source code, type make from the command line at the top
+// level of this distribution:
+//
+//   make
+//
+// ==========================================================================
+//
+// Operation:
+//
+// The distribution contains two directories; one for the library (libdmx.a) 
+// and deamon ( dmxd.bin ) in dmx/, and one for the application program 
+// ( DMXWheel.bin ) in DMXWeel/. 
+//
+// To begin, first run the deamon program. This program communicates between 
+// the interface and the application program via a shared memory segment and 
+// updates the interface on a periodic basis. For more information see the 
+// README file in the dmx directory. You can launch the deamon via command line:
+//
+// cd dmx/deamon
+// sudo ./dmxd.bin &
+//
+// Second, run the DMXWheel program. This program opens up a window that has
+// an HSV color wheel that you can manipulate with the mouse. When you change
+// the values in the wheel, the light will change colors correspondingly. You
+// can launch the application via command line:
+//
+// cd DMXWheel/bin
+// ./DMXWheel.bin
+//
+// ==========================================================================
