@@ -43,6 +43,7 @@ int main( int argc, char *argv[] )
 	error = initDMX();
 	if ( error < 0 ) return ( error );
 	
+	dmxSetValue ( BluChannel , (ubyte) 255 );
 	
 	/* do stuff */
 	for (;;) {
