@@ -1,11 +1,3 @@
-// ===========================================================================
-// DMXWheel - a simple program that sets the color on a DMX device using
-//            the color wheel selector on the screen
-// ===========================================================================
-
-
-// ===========================================================================
-
 #include <gtk/gtk.h>                        // GTK+3.0 graphics library
 #include <dmx.h>                            // DMX interface library
 #include "mongoose.h"                       // Mongoose Web server
@@ -43,12 +35,14 @@ int main( int argc, char *argv[] )
 	error = initDMX();
 	if ( error < 0 ) return ( error );
 	
-	dmxSetValue ( BluChannel , (ubyte) 255 );
+	dmxSetValue ( BluChannel , (ubyte) 200 );
+	dmxSetValue ( RedChannel , (ubyte) 200 );
+	dmxSetValue ( GrnChannel , (ubyte) 200 );
 	
-	/* do stuff */
-	for (;;) {
-		mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
-	}
+	// do stuff 
+//	for (;;) {
+//		mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
+//	}
 
 
 	// kill mg
