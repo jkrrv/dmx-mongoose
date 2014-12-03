@@ -1,6 +1,6 @@
 CdC=g++
 
-TARGETS=dmx DMXController
+TARGETS=dmx mongoose DMXController
 
 all: $(TARGETS)
 	for i in $(TARGETS); \
