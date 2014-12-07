@@ -28,6 +28,9 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 	if (ev == MG_AUTH) {
 		return MG_TRUE; // authorize all authorization reqs
 	} else if (ev == MG_REQUEST && !strcmp(conn->uri, "/lights")) {
+		
+		
+		// output json of alllllll the current values. 
 		mg_printf_data(conn, "%s", "{\n");
 		mg_printf_data(conn, "%s", "\t\"1\" : {\n");
 
@@ -43,8 +46,6 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 		return MG_FALSE;
 	}
 }
-
-
 
 
 // ===========================================================================
