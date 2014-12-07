@@ -2,6 +2,7 @@
 #include <dmx.h>		// DMX interface library
 #include "mongoose.h"		// Mongoose Web server
 #include <string.h>		// for string manipulations
+#include "jsmn.h"		// JSON parser
 
 // constants and definitions
 
@@ -28,8 +29,16 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 	if (ev == MG_AUTH) {
 		return MG_TRUE; // authorize all authorization reqs
 	} else if (ev == MG_REQUEST && !strcmp(conn->uri, "/lights")) {
-		
-		
+
+		// if it's a POST, parse the POSTed data.
+		if (!strcmp(conn->request_method, "POST")) {
+			char postBuf[conn->content_len];
+		//	mg_parse_multipart(postBuf, sizeof postBuf, nullBuf, 
+mg_printf_data(conn, "%s", conn->content);
+
+			mg_printf_data(conn, "%s", "POSTed\n");
+		}
+
 		// output json of alllllll the current values. 
 		mg_printf_data(conn, "%s", "{\n");
 		mg_printf_data(conn, "%s", "\t\"1\" : {\n");
@@ -67,6 +76,10 @@ int main( int argc, char *argv[] ) {
 	if ( error < 0 ) return ( error );
 
 	dmxSetValue ( BluChannel , (ubyte) 255 );
+
+	for (int i=0; i<20; i++) {
+		dmxSetValue( i , (ubyte) 100);
+	}
 	
 	/* do stuff */
 	for (;;) {

@@ -4,14 +4,14 @@ CFLAGS+=  -pthread
 LDFLAGS+= -lgtk-3 -lgdk-3 -latk-1.0 -lgio-2.0 -lpangocairo-1.0 \
           -lgdk_pixbuf-2.0 -lcairo-gobject -lpango-1.0 -lcairo \
           -lgobject-2.0 -lglib-2.0 -lusb -lm \
-          -L../../dmx/lib -ldmx ./mongoose.c -lpthread
+          -L../../dmx/lib -ldmx ./mongoose.c -lpthread ../jsmn/jsmn.c
 
 INCLUDES+= -I. -I../../dmx/include \
            -I/usr/include/glib-2.0 -I/usr/include/gtk-3.0 \
            -I/usr/lib/arm-linux-gnueabihf/glib-2.0/include \
            -I/usr/include/pango-1.0 -I/usr/include/cairo \
            -I/usr/include/pixman-1 -I/usr/include/gdk-pixbuf-2.0 \
-           -I/usr/include/atk-1.0 
+           -I/usr/include/atk-1.0 -I../jsmn
 
 OBJS=DMXController.o
 BIN=DMXController.bin
@@ -23,7 +23,7 @@ all: $(BIN)
 	$(CC) $(CFLAGS) $(INCLUDES) -g -c $< -o $@ -Wno-deprecated-declarations
 
 %.bin: $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS) -Wl,--no-whole-archive -rdynamic
+	$(CC) -o $@ $(OBJS) $(LDFLAGS) -Wl,--no-whole-archive -rdynamic -fpermissive
 	@cp $@ ../bin
 
 clean:
