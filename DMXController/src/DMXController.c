@@ -29,12 +29,73 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 	if (ev == MG_AUTH) {
 		return MG_TRUE; // authorize all authorization reqs
 	} else if (ev == MG_REQUEST && !strcmp(conn->uri, "/lights")) {
+//		// spew some headers...
+//		mg_printf_data(conn, "%s", "HTTP/1.1 200 OK\n\n");
+
 
 		// if it's a POST, parse the POSTed data.
 		if (!strcmp(conn->request_method, "POST")) {
+			
+			// declare some vars
+			int r;
+			char *js = NULL;
+			size_t jslen = 0;
 			char postBuf[conn->content_len];
+			jsmn_parser jpar;
+			jsmntok_t tok[10000];
+			size_t tokcount = 100;
+
+			// prepare parser
+			jsmn_init(&jpar);
+
+			// actually parse
+			r = jsmn_parse(&jpar, conn->content, conn->content_len, tok, sizeof(tok)/sizeof(tok[0]));
+
+			// assume top-level is an object
+			if (r < 1 || t[0].type != JSMN_OBJECT) {
+				printf("Object expected\n");
+				return 1;
+			}
+
+			// loop over keys in root
+			for (int i = 1; i < r; i++) {
+				if (jsoneq(conn->content, &tok[i], "1") == 0) {
+					// fetch string value with strndup
+					printf("thing: %.*s\n", t[i+1].end-t[i+1].start, conn->content + t[i+1].start);
+					i++;
+				} else {
+					
+
+
+			// allocate some tokens to begin with
+			tok - malloc(sizeof(*tok) * tokcount);
+			if (tok == null) {
+				// something bad happened
+				return MG_FALSE;
+			}
+
+			for (;;) {
+				// read a chunk.
+				read = 
+
 		//	mg_parse_multipart(postBuf, sizeof postBuf, nullBuf, 
-mg_printf_data(conn, "%s", conn->content);
+			mg_printf_data(conn, "%s", conn->content);
+
+
+
+			jsmn_parser parser;
+
+			// js - pointer to JSON string
+			// tokens - an array of tokens available
+			// 10 - number of tokens available
+			jsmn_init(&parser);
+
+
+		//	struct jsmn_parser jsonParser;
+		//	jsmn_init_parser(&jsonParser);
+		//	jsmntok_t jsonTokens[1000];
+
+			jsmn_parse(&jsonParser, conn->content, tokens, 256); 
 
 			mg_printf_data(conn, "%s", "POSTed\n");
 		}
@@ -77,8 +138,9 @@ int main( int argc, char *argv[] ) {
 
 	dmxSetValue ( BluChannel , (ubyte) 255 );
 
-	for (int i=0; i<20; i++) {
-		dmxSetValue( i , (ubyte) 100);
+	for (int i=1; i<20; i++) {
+		sleep(1);
+		dmxSetValue( i , (ubyte) 80);
 	}
 	
 	/* do stuff */
