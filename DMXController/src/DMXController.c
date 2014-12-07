@@ -1,10 +1,13 @@
-#include <gtk/gtk.h>			// GTK+3.0 graphics library
-#include <dmx.h>			// DMX interface library
-#include <stdio.h>			// strings for parsing inputs
-#include <stdlib.h>			// for atoi
+#include <gtk/gtk.h>		// GTK+3.0 graphics library
+#include <dmx.h>		// DMX interface library
+#include "mongoose.h"		// Mongoose Web server
+#include <string.h>		// for string manipulations
 
 // constants and definitions
 
+#define RedChannel  2                         // DMX channel for red control
+#define GrnChannel  3                         // DMX channel for green control
+#define BluChannel  4                         // DMX channel for blue control
 #define numChannels 512                       // # of DMX channels used
 
 
@@ -13,43 +16,65 @@
 static int      initDMX       ();
 static void     exitDMX       ();
 
+ubyte values[numChannels]; 
+
+
+
+// ===========================================================================
+//  Mongoose Event Handler
+// ===========================================================================
+
+static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
+	if (ev == MG_AUTH) {
+		return MG_TRUE; // authorize all authorization reqs
+	} else if (ev == MG_REQUEST && !strcmp(conn->uri, "/lights")) {
+		mg_printf_data(conn, "%s", "{\n");
+		mg_printf_data(conn, "%s", "\t\"1\" : {\n");
+
+		for (int i=1; i<=numChannels; i++) {
+			mg_printf_data(conn, "%s%i%s%i%s", "\t\t\"", i, "\" : ", (int) values[i], ",\n");
+		}
+		mg_printf_data(conn, "%s", "\t\t\"running\" : true\n");
+
+		mg_printf_data(conn, "%s", "\t}\n");
+		mg_printf_data(conn, "%s", "}\n");
+		return MG_TRUE;
+	} else {
+		return MG_FALSE;
+	}
+}
+
+
+
 
 // ===========================================================================
 //  main program
 // ===========================================================================
 
-int main( int argc, char *argv[] )
-{
+int main( int argc, char *argv[] ) {
+	// initialize mg
+	struct mg_server *server = mg_create_server(NULL, mg_ev_handler);
+	//mg_set_option(server, "document_root", ".");      // Serve current directory
+	mg_set_option(server, "listening_port", "8080");  // Open port 8080
+
+	// make it clear that we've actually started
+	printf("Running...\n");
+
 	// initialize DMX
 	int error;
 	error = initDMX();
 	if ( error < 0 ) return ( error );
 
-printf("running controller... %i \n", argc);
-
-	if (argc > 2) {
-		printf("setting value %s \n", argv[0]  );
-		dmxSetValue( atoi( argv[1] ), atoi( argv[2] ) );
+	dmxSetValue ( BluChannel , (ubyte) 255 );
+	
+	/* do stuff */
+	for (;;) {
+		mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
 	}
 
-//	fprintf(stdout, "running");
-//
-//	for ( char s[12]; (fgets(s, sizeof s, stdin)); ) {
-//		int control, chn;
-//		ubyte val;
-//		control = atoi( s );
-//		
-//		chn = control >> 8;
-//		val = (ubyte) control % 256;
-//
-//		fprintf(stdout, "%i %i\n", chn, val);
-//
-//		dmxSetValue( chn , val );
-//	}
-//
-//	fprintf(stdout, "out of loop\n");
-
-
+	// kill mg
+	mg_destroy_server(&server);
+	
 	// kill DMX
 	exitDMX();
 	
@@ -61,25 +86,17 @@ printf("running controller... %i \n", argc);
 // initDMX -- initialize DMX interface
 // ===========================================================================
 
-int initDMX()
-{
+int initDMX() {
 
-  // open DMX interface
+	// open DMX interface
+	int success = dmxOpen();
+	if ( success < 0 ) return ( success );
 
-  int success = dmxOpen();
-  if ( success < 0 ) return ( success );
+	// configure
+	dmxSetMaxChannels ( numChannels );
 
-
-  // configure
-
-  dmxSetMaxChannels ( numChannels );
-
-
-  // return valid status
-
-  return ( 0 );
-
-
+	// return valid status
+	return ( 0 );
 }
 
 
@@ -87,17 +104,15 @@ int initDMX()
 // exitDMX -- terminate the DMX interface
 // ===========================================================================
 
-void exitDMX()
-{
+void exitDMX() {
 
- // blackout
-//	for ( int i = 0; i < numChannels; i++ ) {
-//		dmxSetValue ( i , 0 );
-//	}
+	// blackout
+	for (int i=1; i<numChannels; i++) {
+		dmxSetValue( i , 0);
+	}
 
-  // close the DMX connection
-
-  dmxClose();
+	// close the DMX connection
+	dmxClose();
 
 }
 
