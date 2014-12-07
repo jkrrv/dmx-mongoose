@@ -6,17 +6,17 @@
 
 // ===========================================================================
 
-#include <gtk/gtk.h>                        // GTK+3.0 graphics library
-#include <dmx.h>                            // DMX interface library
-#include "mongoose.h"						// Mongoose Web server
-
+#include <gtk/gtk.h>		// GTK+3.0 graphics library
+#include <dmx.h>		// DMX interface library
+#include "mongoose.h"		// Mongoose Web server
+#include <string.h>		// for string manipulations
 
 // constants and definitions
 
 #define RedChannel  2                         // DMX channel for red control
 #define GrnChannel  3                         // DMX channel for green control
 #define BluChannel  4                         // DMX channel for blue control
-#define NumChannels 3                         // # of DMX channels used
+#define numChannels 512                       // # of DMX channels used
 
 
 // global variables
@@ -25,18 +25,49 @@ static int      initDMX       ();
 static void     setDMXColor   ( gdouble, gdouble, gdouble );
 static void     exitDMX       ();
 
+ubyte values[numChannels]; 
+
+
+
+// ===========================================================================
+//  Mongoose Event Handler
+// ===========================================================================
+
+static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
+	if (ev == MG_AUTH) {
+		return MG_TRUE; // authorize all authorization reqs
+	} else if (ev == MG_REQUEST && !strcmp(conn->uri, "/lights")) {
+		mg_printf_data(conn, "%s", "{\n");
+		mg_printf_data(conn, "%s", "\t\"1\" : {\n");
+
+		for (int i=1; i<=numChannels; i++) {
+			mg_printf_data(conn, "%s%i%s%i%s", "\t\t\"", i, "\" : ", (int) values[i], ",\n");
+		}
+		mg_printf_data(conn, "%s", "\t\t\"running\" : true\n");
+
+		mg_printf_data(conn, "%s", "\t}\n");
+		mg_printf_data(conn, "%s", "}\n");
+		return MG_TRUE;
+	} else {
+		return MG_FALSE;
+	}
+}
+
+
+
 
 // ===========================================================================
 //  main program
 // ===========================================================================
 
-int main( int argc, char *argv[] )
-{
+int main( int argc, char *argv[] ) {
 	// initialize mg
-	//struct mg_server *server = mg_create_server(NULL, NULL);
+	struct mg_server *server = mg_create_server(NULL, mg_ev_handler);
 	//mg_set_option(server, "document_root", ".");      // Serve current directory
-	//mg_set_option(server, "listening_port", "8080");  // Open port 8080
-	
+	mg_set_option(server, "listening_port", "8080");  // Open port 8080
+
+	// make it clear that we've actually started
+	printf("Running...\n");
 
 	// initialize DMX
 	int error;
@@ -47,12 +78,12 @@ int main( int argc, char *argv[] )
 	
 	/* do stuff */
 	for (;;) {
-		//mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
+		mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
 	}
 
 
 	// kill mg
-	//mg_destroy_server(&server);
+	mg_destroy_server(&server);
 	
 	// kill DMX
 	exitDMX();
@@ -65,46 +96,17 @@ int main( int argc, char *argv[] )
 // initDMX -- initialize DMX interface
 // ===========================================================================
 
-int initDMX()
-{
+int initDMX() {
 
-  // open DMX interface
+	// open DMX interface
+	int success = dmxOpen();
+	if ( success < 0 ) return ( success );
 
-  int success = dmxOpen();
-  if ( success < 0 ) return ( success );
+	// configure
+	dmxSetMaxChannels ( numChannels );
 
-
-  // configure
-
-  dmxSetMaxChannels ( NumChannels );
-
-
-  // return valid status
-
-  return ( 0 );
-
-
-}
-
-// ===========================================================================
-// setDMXColor -- set the color values for the DMX device
-// ===========================================================================
-
-void setDMXColor ( gdouble red, gdouble grn, gdouble blu )
-{
-
-  // convert values to unsigned bytes
-
-  ubyte redVal = (ubyte) ( 255.0f * red );
-  ubyte grnVal = (ubyte) ( 255.0f * grn );
-  ubyte bluVal = (ubyte) ( 255.0f * blu );
-
-
-  // set the channel colors
-
-  dmxSetValue ( RedChannel , redVal );
-  dmxSetValue ( GrnChannel , grnVal );
-  dmxSetValue ( BluChannel , bluVal );
+	// return valid status
+	return ( 0 );
 }
 
 
@@ -112,19 +114,15 @@ void setDMXColor ( gdouble red, gdouble grn, gdouble blu )
 // exitDMX -- terminate the DMX interface
 // ===========================================================================
 
-void exitDMX()
-{
+void exitDMX() {
 
- // blackout
+	// blackout
+	for (int i=1; i<numChannels; i++) {
+		dmxSetValue( i , 0);
+	}
 
-  dmxSetValue ( RedChannel , 0 );
-  dmxSetValue ( GrnChannel , 0 );
-  dmxSetValue ( BluChannel , 0 );
-
-
-  // close the DMX connection
-
-  dmxClose();
+	// close the DMX connection
+	dmxClose();
 
 }
 
