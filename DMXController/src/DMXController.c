@@ -2,7 +2,8 @@
 #include <dmx.h>		// DMX interface library
 #include "mongoose.h"		// Mongoose Web server
 #include <string.h>		// for string manipulations
-#include "jsmn.h"		// JSON parser
+#include <stdio.h>		// needed for frozen
+#include "frozen.h"		// frozen JSON parser
 
 // constants and definitions
 
@@ -35,67 +36,8 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 
 		// if it's a POST, parse the POSTed data.
 		if (!strcmp(conn->request_method, "POST")) {
+			char json[] = from strchr(conn->content, '{') to strrchr(conn->content, '}')
 			
-			// declare some vars
-			int r;
-			char *js = NULL;
-			size_t jslen = 0;
-			char postBuf[conn->content_len];
-			jsmn_parser jpar;
-			jsmntok_t tok[10000];
-			size_t tokcount = 100;
-
-			// prepare parser
-			jsmn_init(&jpar);
-
-			// actually parse
-			r = jsmn_parse(&jpar, conn->content, conn->content_len, tok, sizeof(tok)/sizeof(tok[0]));
-
-			// assume top-level is an object
-			if (r < 1 || t[0].type != JSMN_OBJECT) {
-				printf("Object expected\n");
-				return 1;
-			}
-
-			// loop over keys in root
-			for (int i = 1; i < r; i++) {
-				if (jsoneq(conn->content, &tok[i], "1") == 0) {
-					// fetch string value with strndup
-					printf("thing: %.*s\n", t[i+1].end-t[i+1].start, conn->content + t[i+1].start);
-					i++;
-				} else {
-					
-
-
-			// allocate some tokens to begin with
-			tok - malloc(sizeof(*tok) * tokcount);
-			if (tok == null) {
-				// something bad happened
-				return MG_FALSE;
-			}
-
-			for (;;) {
-				// read a chunk.
-				read = 
-
-		//	mg_parse_multipart(postBuf, sizeof postBuf, nullBuf, 
-			mg_printf_data(conn, "%s", conn->content);
-
-
-
-			jsmn_parser parser;
-
-			// js - pointer to JSON string
-			// tokens - an array of tokens available
-			// 10 - number of tokens available
-			jsmn_init(&parser);
-
-
-		//	struct jsmn_parser jsonParser;
-		//	jsmn_init_parser(&jsonParser);
-		//	jsmntok_t jsonTokens[1000];
-
-			jsmn_parse(&jsonParser, conn->content, tokens, 256); 
 
 			mg_printf_data(conn, "%s", "POSTed\n");
 		}
