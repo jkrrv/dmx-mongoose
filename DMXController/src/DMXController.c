@@ -8,9 +8,6 @@
 
 // constants and definitions
 
-#define RedChannel  2                         // DMX channel for red control
-#define GrnChannel  3                         // DMX channel for green control
-#define BluChannel  4                         // DMX channel for blue control
 #define numChannels 512                       // # of DMX channels used
 
 
@@ -40,35 +37,40 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 			char *json = (char*) malloc(conn->content_len);
 			strncpy(json, conn->content, conn->content_len);
 
-			struct json_token *arr, *tok;
+			struct json_token *arr, *universe, *chan;
 
 			// tokenize JSON string, fill in token array.
-			arr = parse_json2(json, strlen(json));
+			arr = parse_json2(json, strlen(json)); // success is assumed, but seems safe-ish.
 
-//			if (!!arr) {
-//				int arrLen = sizeof(arr) / sizeof(arr[0]);
-//				printf("%i", arrLen);
-//				for (int arrIndx = 0; arrIndx < 2; arrIndx++) {
-//					printf("asdfasdfadsf");
-//					printf("ans: %i/n/n", arr[arrIndx].type);
-					// search for parameter
-					tok = find_json_token(arr, "0");
-//					printf("%i", arr->len);
-//					for (int i=0; i<1; i++) {
-						printf("%s", arr[0]);
-//					}
-//
-//					if (tok) {
-//						printf("Value is [%.*s]\n", tok->len, tok->ptr);
-//					}
+//			int arrLen = sizeof(arr) / sizeof(arr[0]);
+//			printf("%i", arrLen);
+
+			// search for universe
+			universe = find_json_tok(arr, "1"); // currently only universe 1 is supported.
+
+			if (universe!=NULL) {
+//				printf("Value is %.*s\n", universe->len, universe->ptr);
+				char vChr[3], cChr[3];
+				for (int ch=1; ch<=numChannels; ch++) {
+					sprintf(cChr, "%i", ch);
+//					printf("%s\n", cChr);
+					chan = find_json_tok(universe, cChr);
+					if (chan!=NULL) {
+						sprintf(vChr, "%.*s", chan->len, chan->ptr);
+//						printf("spot1: %s\n", vChr);
+						values[ch-1] = atoi(vChr);
+//						printf("spot2: %i\n", values[ch-1]);
+						dmxSetValue(ch, values[ch-1]);
+//						printf("Value is %.*s\n", chan->len, chan->ptr);
+					}
 				}
+			}
 
-				// free some memory
-				free(arr);
-//			}
+			// free some memory
+			free(arr);
 
 			// print the post data (debugging)
-			mg_printf_data(conn, "%s", json);
+//			mg_printf_data(conn, "%s", json);
 //			printf("%s", json);
 		}
 
@@ -90,6 +92,8 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 }
 
 
+
+
 // ===========================================================================
 //  main program
 // ===========================================================================
@@ -108,13 +112,6 @@ int main( int argc, char *argv[] ) {
 	error = initDMX();
 	if ( error < 0 ) return ( error );
 
-	dmxSetValue ( BluChannel , (ubyte) 255 );
-
-	for (int i=1; i<5; i++) {
-		sleep(1);
-		dmxSetValue( i , (ubyte) 80);
-	}
-	
 	/* do stuff */
 	for (;;) {
 		mg_poll_server(server, 1000);   // Infinite loop, Ctrl-C to stop
