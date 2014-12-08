@@ -4,6 +4,7 @@
 #include <string.h>		// for string manipulations
 #include <stdio.h>		// needed for frozen
 #include "frozen.h"		// frozen JSON parser
+#include <stdlib.h>		// dealing with memory
 
 // constants and definitions
 
@@ -36,10 +37,39 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 
 		// if it's a POST, parse the POSTed data.
 		if (!strcmp(conn->request_method, "POST")) {
-			char json[] = from strchr(conn->content, '{') to strrchr(conn->content, '}')
-			
+			char *json = (char*) malloc(conn->content_len);
+			strncpy(json, conn->content, conn->content_len);
 
-			mg_printf_data(conn, "%s", "POSTed\n");
+			struct json_token *arr, *tok;
+
+			// tokenize JSON string, fill in token array.
+			arr = parse_json2(json, strlen(json));
+
+//			if (!!arr) {
+//				int arrLen = sizeof(arr) / sizeof(arr[0]);
+//				printf("%i", arrLen);
+//				for (int arrIndx = 0; arrIndx < 2; arrIndx++) {
+//					printf("asdfasdfadsf");
+//					printf("ans: %i/n/n", arr[arrIndx].type);
+					// search for parameter
+					tok = find_json_token(arr, "0");
+//					printf("%i", arr->len);
+//					for (int i=0; i<1; i++) {
+						printf("%s", arr[0]);
+//					}
+//
+//					if (tok) {
+//						printf("Value is [%.*s]\n", tok->len, tok->ptr);
+//					}
+				}
+
+				// free some memory
+				free(arr);
+//			}
+
+			// print the post data (debugging)
+			mg_printf_data(conn, "%s", json);
+//			printf("%s", json);
 		}
 
 		// output json of alllllll the current values. 
@@ -47,7 +77,7 @@ static int mg_ev_handler(struct mg_connection *conn, enum mg_event ev) {
 		mg_printf_data(conn, "%s", "\t\"1\" : {\n");
 
 		for (int i=1; i<=numChannels; i++) {
-			mg_printf_data(conn, "%s%i%s%i%s", "\t\t\"", i, "\" : ", (int) values[i], ",\n");
+			mg_printf_data(conn, "%s%i%s%i%s", "\t\t\"", i, "\" : ", (int) values[i-1], ",\n");
 		}
 		mg_printf_data(conn, "%s", "\t\t\"running\" : true\n");
 
@@ -80,7 +110,7 @@ int main( int argc, char *argv[] ) {
 
 	dmxSetValue ( BluChannel , (ubyte) 255 );
 
-	for (int i=1; i<20; i++) {
+	for (int i=1; i<5; i++) {
 		sleep(1);
 		dmxSetValue( i , (ubyte) 80);
 	}
